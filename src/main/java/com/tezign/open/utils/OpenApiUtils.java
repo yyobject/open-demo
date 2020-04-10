@@ -60,23 +60,33 @@ public class OpenApiUtils {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
+
+        String userName="994815303@qq.com";
+        String pwd = "qq111111";
+
         /**
          * 获取平台调用令牌  -这个令牌有效期只有1小时，请保持频率获取更换
          */
         String openApiToken = askOpenApiToken();
         HEADER_OPEN_API_TOKEN_VALUE = openApiToken;
         System.out.println(openApiToken);
-
+        /**
+         * 重置供应商密码
+         */
+        String s = resetPwd(userName, "123456");
+        System.out.println(s);
         /**
          * 登录，获取用户特定token
          */
-        String userToken = askOpenUserToken("wyyrockking@163.com", "qq111111");
+        String userToken = askOpenUserToken("994815303@qq.com", "123456");
         /**
          * 登陆状态下请求用户信息
          */
         String userInfo = askUserInfoByUserToken(userToken);
         System.out.println(userInfo);
 
+        boolean b = changePwd(userToken,"994815303@qq.com", "123456", pwd);
+        System.out.println(b);
     }
 
     /**
@@ -152,4 +162,58 @@ public class OpenApiUtils {
         return content;
     }
 
+    /**
+     * 系统重置密码
+     * 用于忘记密码
+     * @param userName
+     * @param password
+     * @return
+     * @throws IOException
+     */
+    public static String resetPwd(String userName, String password) throws IOException {
+
+        JSONObject data = new JSONObject();
+        data.put("userName", userName);
+        data.put("password", password);
+
+        String content = Request.Post(URI + "/open-api/v1/customized/reset/password")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        log.debug("获取resetPwd返回结果:{}", content);
+        JSONObject result = JSON.parseObject(content);
+        if (Objects.equals(result.getString("code"), "0")) {
+            return result.getJSONObject("result").getString("token");
+        } else {
+            throw new RuntimeException("resetPwd返回结果失败:" + content);
+        }
+    }
+
+    /**
+     * 用户登陆状态下修改自己的密码
+     * @param userName
+     * @param password
+     * @return
+     * @throws IOException
+     */
+    public static boolean changePwd(String userToken,String userName,String oldPassword, String password) throws IOException {
+
+        JSONObject data = new JSONObject();
+        data.put("userName", userName);
+        data.put("oldPassword", oldPassword);
+        data.put("password", password);
+
+        String content = Request.Post(URI + "/open-api/v1/customized/user/change-pwd")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME,userToken)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        log.debug("获取changePwd返回结果:{}", content);
+        JSONObject result = JSON.parseObject(content);
+        if (Objects.equals(result.getString("code"), "0")) {
+            return true;
+        } else {
+            throw new RuntimeException("changePwd返回结果失败:" + content);
+        }
+    }
 }
