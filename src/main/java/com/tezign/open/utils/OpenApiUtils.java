@@ -199,7 +199,6 @@ public class OpenApiUtils {
     public static boolean changePwd(String userToken,String userName,String oldPassword, String password) throws IOException {
 
         JSONObject data = new JSONObject();
-        data.put("userName", userName);
         data.put("oldPassword", oldPassword);
         data.put("password", password);
 
