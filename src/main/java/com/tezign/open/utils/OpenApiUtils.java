@@ -3,6 +3,7 @@ package com.tezign.open.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.Charsets;
 import org.apache.http.client.fluent.Request;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -92,7 +94,7 @@ public class OpenApiUtils {
         /**
          * 获取跳转地址
          */
-        String tokenUrl = accessTokenUrl("", userToken);
+        String tokenUrl = accessTokenUrl(PathCodeEnum.CODE_0, userToken);
         System.out.println(tokenUrl);
     }
 
@@ -228,18 +230,13 @@ public class OpenApiUtils {
     /**
      * 免密跳转获取授权地址
      *
-     * @param path
+     * @param pathEnum
      * @param userToken
      * @return
      * @throws IOException
      */
-    public static String accessTokenUrl(String path, String userToken) throws IOException {
-        //需要跳转到特赞的模块路径，为空默认去首页
-        String model = "";
-        if (!StringUtils.isEmpty(path)) {
-            model = URLEncoder.encode(path, "UTF-8");
-        }
-        String content = Request.Get(URI + "/open-api/v1/customized/user/redirect-url?path=" + model)
+    public static String accessTokenUrl(PathCodeEnum pathEnum, String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/redirect-url?pathCode=" + pathEnum.getValue())
                 .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
                 .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
                 .execute().returnContent().asString(Charsets.UTF_8);
@@ -249,6 +246,49 @@ public class OpenApiUtils {
             return result.getString("result");
         } else {
             throw new RuntimeException("accessToken返回结果失败:" + content);
+        }
+    }
+    @Getter
+    public enum PathCodeEnum{
+        CODE_0(0, "默认",""),
+        CODE_1(1, "Trend watch",""),
+        CODE_2(2, "Cfda",""),
+        CODE_3(3, "EC trend",""),
+        CODE_4(4, "合规检测","/detection"),
+        CODE_5(5, "智能创意","/ai/design"),
+        CODE_6(6, "产品库","/product"),
+        CODE_7(7, "RFP","/project/rfp/home"),
+        CODE_8(8, "创新供应商","/base/innovation-suppliers/audit"),
+        CODE_9(9, "案例库","/assets/case/search"),
+        CODE_10(10, "素材库","/assets/material/audit"),
+        CODE_11(11, "数字供应商","/pro/collect?type=0"),
+        CODE_12(12, "创新资源库",""),
+        CODE_13(13, "视觉图库",""),
+        CODE_14(14, "营销素材库",""),
+        ;
+
+        private Integer value;
+
+        private String name;
+
+        private String path;
+
+        private static final Map<Integer, PathCodeEnum> MAP = Maps.newHashMap();
+
+        static {
+            for (PathCodeEnum obj : PathCodeEnum.values()) {
+                MAP.put(obj.getValue(), obj);
+            }
+        }
+
+        PathCodeEnum(Integer value, String name,String path) {
+            this.value = value;
+            this.name = name;
+            this.path = path;
+        }
+
+        public static PathCodeEnum findByCode(Integer code) {
+            return MAP.getOrDefault(code, PathCodeEnum.CODE_0);
         }
     }
 }
