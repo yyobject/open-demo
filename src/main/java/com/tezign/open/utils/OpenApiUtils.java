@@ -7,8 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.Charsets;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -61,7 +63,7 @@ public class OpenApiUtils {
      */
     public static void main(String[] args) throws IOException {
 
-        String userName="994815303@qq.com";
+        String userName = "994815303@qq.com";
         String pwd = "qq111111";
 
         /**
@@ -85,8 +87,13 @@ public class OpenApiUtils {
         String userInfo = askUserInfoByUserToken(userToken);
         System.out.println(userInfo);
 
-        boolean b = changePwd(userToken,"994815303@qq.com", "123456", pwd);
+        boolean b = changePwd(userToken, "994815303@qq.com", "123456", pwd);
         System.out.println(b);
+        /**
+         * 获取跳转地址
+         */
+        String tokenUrl = accessTokenUrl("", userToken);
+        System.out.println(tokenUrl);
     }
 
     /**
@@ -165,6 +172,7 @@ public class OpenApiUtils {
     /**
      * 系统重置密码
      * 用于忘记密码
+     *
      * @param userName
      * @param password
      * @return
@@ -191,12 +199,13 @@ public class OpenApiUtils {
 
     /**
      * 用户登陆状态下修改自己的密码
+     *
      * @param userName
      * @param password
      * @return
      * @throws IOException
      */
-    public static boolean changePwd(String userToken,String userName,String oldPassword, String password) throws IOException {
+    public static boolean changePwd(String userToken, String userName, String oldPassword, String password) throws IOException {
 
         JSONObject data = new JSONObject();
         data.put("oldPassword", oldPassword);
@@ -204,7 +213,7 @@ public class OpenApiUtils {
 
         String content = Request.Post(URI + "/open-api/v1/customized/user/change-pwd")
                 .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
-                .addHeader(HEADER_OPEN_USER_TOKEN_NAME,userToken)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
                 .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
                 .execute().returnContent().asString(Charsets.UTF_8);
         log.debug("获取changePwd返回结果:{}", content);
@@ -213,6 +222,33 @@ public class OpenApiUtils {
             return true;
         } else {
             throw new RuntimeException("changePwd返回结果失败:" + content);
+        }
+    }
+
+    /**
+     * 免密跳转获取授权地址
+     *
+     * @param path
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String accessTokenUrl(String path, String userToken) throws IOException {
+        //需要跳转到特赞的模块路径，为空默认去首页
+        String model = "";
+        if (!StringUtils.isEmpty(path)) {
+            model = URLEncoder.encode(path, "UTF-8");
+        }
+        String content = Request.Get(URI + "/open-api/v1/customized/user/redirect-url?path=" + model)
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        log.debug("获取changePwd返回结果:{}", content);
+        JSONObject result = JSON.parseObject(content);
+        if (Objects.equals(result.getString("code"), "0")) {
+            return result.getString("result");
+        } else {
+            throw new RuntimeException("accessToken返回结果失败:" + content);
         }
     }
 }
