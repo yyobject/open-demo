@@ -8,12 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.Charsets;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -248,24 +247,24 @@ public class OpenApiUtils {
             throw new RuntimeException("accessToken返回结果失败:" + content);
         }
     }
+
     @Getter
-    public enum PathCodeEnum{
-        CODE_0(0, "默认",""),
-        CODE_1(1, "Trend watch",""),
-        CODE_2(2, "Cfda",""),
-        CODE_3(3, "EC trend",""),
-        CODE_4(4, "合规检测","/detection"),
-        CODE_5(5, "智能创意","/ai/design"),
-        CODE_6(6, "产品库","/product"),
-        CODE_7(7, "RFP","/project/rfp/home"),
-        CODE_8(8, "创新供应商","/base/innovation-suppliers/audit"),
-        CODE_9(9, "案例库","/assets/case/search"),
-        CODE_10(10, "素材库","/assets/material/audit"),
-        CODE_11(11, "数字供应商","/pro/collect?type=0"),
-        CODE_12(12, "创新资源库",""),
-        CODE_13(13, "视觉图库",""),
-        CODE_14(14, "营销素材库",""),
-        ;
+    public enum PathCodeEnum {
+        CODE_0(0, "默认", ""),
+        CODE_1(1, "Trend watch", ""),
+        CODE_2(2, "Cfda", ""),
+        CODE_3(3, "EC trend", ""),
+        CODE_4(4, "合规检测", "/detection"),
+        CODE_5(5, "智能创意", "/ai/design"),
+        CODE_6(6, "产品库", "/product"),
+        CODE_7(7, "RFP", "/project/rfp/home"),
+        CODE_8(8, "创新供应商", "/base/innovation-suppliers/audit"),
+        CODE_9(9, "案例库", "/assets/case/search"),
+        CODE_10(10, "素材库", "/assets/material/audit"),
+        CODE_11(11, "数字供应商", "/pro/collect?type=0"),
+        CODE_12(12, "创新资源库", ""),
+        CODE_13(13, "视觉图库", ""),
+        CODE_14(14, "营销素材库", ""),;
 
         private Integer value;
 
@@ -273,7 +272,7 @@ public class OpenApiUtils {
 
         private String path;
 
-        private static final Map<Integer, PathCodeEnum> MAP = Maps.newHashMap();
+        private static final Map<Integer, PathCodeEnum> MAP = new HashMap<>();
 
         static {
             for (PathCodeEnum obj : PathCodeEnum.values()) {
@@ -281,7 +280,7 @@ public class OpenApiUtils {
             }
         }
 
-        PathCodeEnum(Integer value, String name,String path) {
+        PathCodeEnum(Integer value, String name, String path) {
             this.value = value;
             this.name = name;
             this.path = path;
