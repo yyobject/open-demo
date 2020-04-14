@@ -10,6 +10,7 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -81,7 +82,7 @@ public class OpenApiUtils {
         /**
          * 登录，获取用户特定token
          */
-        String userToken = askOpenUserToken("994815303@qq.com", "123456");
+        String userToken = askOpenUserToken(userName, "123456");
         /**
          * 登陆状态下请求用户信息
          */
@@ -93,8 +94,9 @@ public class OpenApiUtils {
         /**
          * 获取跳转地址
          */
-        String tokenUrl = accessTokenUrl(PathCodeEnum.CODE_0, userToken);
+        String tokenUrl = accessTokenUrl("", userToken);
         System.out.println(tokenUrl);
+
     }
 
     /**
@@ -229,17 +231,20 @@ public class OpenApiUtils {
     /**
      * 免密跳转获取授权地址
      *
-     * @param pathEnum
+     * @param path
      * @param userToken
      * @return
      * @throws IOException
      */
-    public static String accessTokenUrl(PathCodeEnum pathEnum, String userToken) throws IOException {
-        String content = Request.Get(URI + "/open-api/v1/customized/user/redirect-url?pathCode=" + pathEnum.getValue())
+    public static String accessTokenUrl(String path, String userToken) throws IOException {
+        if(Objects.nonNull(path)){
+            path = URLEncoder.encode(path,"UTF-8");
+        }
+        String content = Request.Get(URI + "/open-api/v1/customized/user/redirect-url?path=" + path)
                 .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
                 .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
                 .execute().returnContent().asString(Charsets.UTF_8);
-        log.debug("获取changePwd返回结果:{}", content);
+        log.debug("获取accessToken返回结果:{}", content);
         JSONObject result = JSON.parseObject(content);
         if (Objects.equals(result.getString("code"), "0")) {
             return result.getString("result");
