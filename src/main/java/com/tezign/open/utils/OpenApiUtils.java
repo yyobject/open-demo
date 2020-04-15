@@ -94,9 +94,13 @@ public class OpenApiUtils {
         /**
          * 获取跳转地址
          */
-        String tokenUrl = accessTokenUrl("", userToken);
+        String tokenUrl = accessTokenUrl("product", userToken);
         System.out.println(tokenUrl);
-
+        /**
+         * rfp消息列表
+         */
+        String s1 = rfpNotice(userToken);
+        System.out.println(s1);
     }
 
     /**
@@ -251,6 +255,21 @@ public class OpenApiUtils {
         } else {
             throw new RuntimeException("accessToken返回结果失败:" + content);
         }
+    }
+
+    /**
+     * 获取rfp消息
+     *
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String rfpNotice(String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/rfp/notice/unread-proposal")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
     }
 
     @Getter
