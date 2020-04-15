@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.Charsets;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
-
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
@@ -74,57 +73,98 @@ public class OpenApiUtils {
          */
         String openApiToken = askOpenApiToken();
         HEADER_OPEN_API_TOKEN_VALUE = openApiToken;
-        System.out.println(openApiToken);
+        log.info("成功获取「X-Open-Api-Token」: {}",openApiToken);
+
         /**
          * 重置供应商密码
          */
         String s = resetPwd(userName, "123456");
-        System.out.println(s);
+        log.info("重置供应商密码返回:{}",s);
+
         /**
          * 登录，获取用户特定token
          */
         String userToken = askOpenUserToken(userName, "123456");
+        log.info("成功获取「X-Open-User-Token」:{}",userToken);
+
         /**
          * 登陆状态下请求用户信息
          */
         String userInfo = askUserInfoByUserToken(userToken);
-        System.out.println(userInfo);
+        log.info("用户信息:{}",userInfo);
 
-        boolean b = changePwd(userToken, "994815303@qq.com", "123456", pwd);
-        System.out.println(b);
+        /**
+         * 用户修改密码
+         */
+        boolean b = changePwd(userToken,userName, "123456", pwd);
+        log.info("修改用户密码:{}",b);
+
         /**
          * 获取跳转地址
          */
         String tokenUrl = accessTokenUrl("product", userToken);
-        System.out.println(tokenUrl);
+        log.info("用户跳转地址:{}",tokenUrl);
+
         /**
          * rfp消息列表
          */
         String s1 = rfpNotice(userToken);
-        System.out.println(s1);
+        log.info("rfp消息列表:{}",s1);
+
         /**
          * 个人收藏的产品列表
          */
         String s2 = starSpuList(userToken);
-        System.out.println(s2);
-        JSONArray result = JSON.parseObject(s2).getJSONObject("result").getJSONArray("list");
-        Long spuId = result.getJSONObject(0).getLong("spuId");
-        /**
-         * 根据spuId查询详情
-         */
-        String s3 = spuDetail(spuId, userToken);
-        System.out.println(s3);
-        /**
-         * 取消收藏
-         */
-        String s4 = unStar(spuId, userToken);
-        System.out.println(s4);
+        log.info("个人收藏的产品列表:{}",s2);
+
+        try {
+            JSONArray result = JSON.parseObject(s2).getJSONObject("result").getJSONArray("list");
+            Long spuId = result.getJSONObject(0).getLong("spuId");
+            if(Objects.nonNull(spuId)){
+                /**
+                 * 根据spuId查询详情
+                 */
+                String s3 = spuDetail(spuId, userToken);
+                log.info("根据spuId查询详情，spuId={}:{}",spuId,s3);
+
+                /**
+                 * 取消收藏
+                 */
+                String s4 = unStar(spuId, userToken);
+                log.info("取消收藏，spuId={}:{}",spuId,s4);
+
+                /**
+                 * 收藏
+                 */
+                String star = star(spuId, userToken);
+                log.info("收藏，spuId={}:{}",spuId,star);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         /**
-         * 收藏
+         * 分页查询收藏的案例列表
          */
-        String star = star(spuId, userToken);
-        System.out.println(star);
+        String s3 = queryPortfolioList(10,1,0,userToken);
+        log.info("收藏的案例列表:{}",s3);
+
+        try{
+            JSONArray jsonArray = JSON.parseObject(s3).getJSONObject("result").getJSONArray("portfolioList");
+            Long id = jsonArray.getJSONObject(0).getLong("portfolioId");
+            String s4 = portfolioDetail(id, userToken);
+            log.info("案例详情，id={}:{}",id,s4);
+
+            String s5 = unStarPortfolio(id, userToken);
+            log.info("取消收藏案例，id={}:{}",id,s5);
+
+            String s6 = starPortfolio(id, userToken);
+            log.info("收藏案例，id={}:{}",id,s6);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -310,7 +350,7 @@ public class OpenApiUtils {
         return content;
     }
     /**
-     * 查询用户收藏的产品列表
+     * 产品详情
      * @param userToken
      * @return
      * @throws IOException
@@ -357,46 +397,64 @@ public class OpenApiUtils {
         return content;
     }
 
-    @Getter
-    public enum PathCodeEnum {
-        CODE_0(0, "默认", ""),
-        CODE_1(1, "Trend watch", ""),
-        CODE_2(2, "Cfda", ""),
-        CODE_3(3, "EC trend", ""),
-        CODE_4(4, "合规检测", "/detection"),
-        CODE_5(5, "智能创意", "/ai/design"),
-        CODE_6(6, "产品库", "/product"),
-        CODE_7(7, "RFP", "/project/rfp/home"),
-        CODE_8(8, "创新供应商", "/base/innovation-suppliers/audit"),
-        CODE_9(9, "案例库", "/assets/case/search"),
-        CODE_10(10, "素材库", "/assets/material/audit"),
-        CODE_11(11, "数字供应商", "/pro/collect?type=0"),
-        CODE_12(12, "创新资源库", ""),
-        CODE_13(13, "视觉图库", ""),
-        CODE_14(14, "营销素材库", ""),;
+    /**
+     * 查询用户收藏的案例列表
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String queryPortfolioList(Integer pageSize,Integer sort,Integer row,String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/collection/portfolioList?pageSize="+pageSize+"&sort="+sort+"&row="+row)
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+    /**
+     * 案例详情
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String portfolioDetail(Long id,String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/portfolio/manager/portfolio/detail?id="+id)
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
 
-        private Integer value;
+    /**
+     * 查询用户收藏的产品列表
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String unStarPortfolio(Long id,String userToken) throws IOException {
+        JSONObject data = new JSONObject();
+        data.put("id", id);
+        String content = Request.Post(URI + "/open-api/v1/customized/user/collection/cancelPortfolio")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
 
-        private String name;
-
-        private String path;
-
-        private static final Map<Integer, PathCodeEnum> MAP = new HashMap<>();
-
-        static {
-            for (PathCodeEnum obj : PathCodeEnum.values()) {
-                MAP.put(obj.getValue(), obj);
-            }
-        }
-
-        PathCodeEnum(Integer value, String name, String path) {
-            this.value = value;
-            this.name = name;
-            this.path = path;
-        }
-
-        public static PathCodeEnum findByCode(Integer code) {
-            return MAP.getOrDefault(code, PathCodeEnum.CODE_0);
-        }
+    /**
+     * 查询用户收藏的产品列表
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String starPortfolio(Long id,String userToken) throws IOException {
+        JSONObject data = new JSONObject();
+        data.put("id", id);
+        String content = Request.Post(URI + "/open-api/v1/customized/user/collection/addPortfolio")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
     }
 }
