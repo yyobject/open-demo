@@ -1,6 +1,7 @@
 package com.tezign.open.utils;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 import lombok.Getter;
@@ -101,6 +102,29 @@ public class OpenApiUtils {
          */
         String s1 = rfpNotice(userToken);
         System.out.println(s1);
+        /**
+         * 个人收藏的产品列表
+         */
+        String s2 = starSpuList(userToken);
+        System.out.println(s2);
+        JSONArray result = JSON.parseObject(s2).getJSONObject("result").getJSONArray("list");
+        Long spuId = result.getJSONObject(0).getLong("spuId");
+        /**
+         * 根据spuId查询详情
+         */
+        String s3 = spuDetail(spuId, userToken);
+        System.out.println(s3);
+        /**
+         * 取消收藏
+         */
+        String s4 = unStar(spuId, userToken);
+        System.out.println(s4);
+
+        /**
+         * 收藏
+         */
+        String star = star(spuId, userToken);
+        System.out.println(star);
     }
 
     /**
@@ -268,6 +292,67 @@ public class OpenApiUtils {
         String content = Request.Get(URI + "/open-api/v1/customized/user/rfp/notice/unread-proposal")
                 .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
                 .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+
+    /**
+     * 查询用户收藏的产品列表
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String starSpuList(String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/product/product-collection-item/query-default-collection-items")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+    /**
+     * 查询用户收藏的产品列表
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String spuDetail(Long spuId,String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/product/query-details?spuId="+spuId)
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+
+    /**
+     * 查询用户收藏的产品列表
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String unStar(Long spuId,String userToken) throws IOException {
+        JSONObject data = new JSONObject();
+        data.put("id", spuId);
+        String content = Request.Post(URI + "/open-api/v1/customized/user/product/product-collection-item/delete-item-from-default-collection")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+
+    /**
+     * 查询用户收藏的产品列表
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String star(Long spuId,String userToken) throws IOException {
+        JSONObject data = new JSONObject();
+        data.put("id", spuId);
+        String content = Request.Post(URI + "/open-api/v1/customized/user/product/product-collection-item/add-item-2default")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
                 .execute().returnContent().asString(Charsets.UTF_8);
         return content;
     }
