@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.Charsets;
 import org.apache.http.client.fluent.Request;
@@ -13,8 +12,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -142,6 +139,15 @@ public class OpenApiUtils {
                 Long designerId = result.getJSONObject(0).getLong("belongId");
                 String s5 = designerInfo(designerId, userToken);
                 log.info("产品供应商信息，designerId={}:{}",designerId,s5);
+
+                String s6 = spuTags(spuId, userToken);
+                log.info("产品标签，spuId={}:{}",spuId,s6);
+
+                String s7 = querySimilarSpu(spuId, 0, 3, userToken);
+                log.info("分页查询相似产品，spuId={}:{}",spuId,s7);
+
+                String s8 = queryRecommendSpu(spuId, userToken);
+                log.info("系统、供应商推荐产品，spuId={}:{}",spuId,s8);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -471,6 +477,54 @@ public class OpenApiUtils {
      */
     public static String designerInfo(Long designerId,String userToken) throws IOException {
         String content = Request.Get(URI + "/open-api/v1/customized/user/product/designer-simple-info?designerId="+designerId)
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+
+    /**
+     * 产品标签
+     * @param spuId
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String spuTags(Long spuId,String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/product/spu/tag/query-tags-by-spu-id?spuId="+spuId)
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+
+    /**
+     * 查询相似产品
+     * @param spuId
+     * @param startPoint    从startPoint开始查询  0
+     * @param endPoint      查到第endPoint个     10
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String querySimilarSpu(Long spuId,Integer startPoint,Integer endPoint,String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/product/search/query-by-spu-id-similar-attr?spuId="+spuId
+        +"&startPoint="+startPoint+"&endPoint="+endPoint)
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+
+    /**
+     * 产品详情页 系统推荐和供应商推荐的产品
+     * @param spuId
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String queryRecommendSpu(Long spuId,String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/product/user/get-recommends?spuId="+spuId)
                 .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
                 .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
                 .execute().returnContent().asString(Charsets.UTF_8);
