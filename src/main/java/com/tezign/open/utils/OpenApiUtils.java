@@ -138,6 +138,10 @@ public class OpenApiUtils {
                  */
                 String star = star(spuId, userToken);
                 log.info("收藏，spuId={}:{}",spuId,star);
+
+                Long designerId = result.getJSONObject(0).getLong("belongId");
+                String s5 = designerInfo(designerId, userToken);
+                log.info("产品供应商信息，designerId={}:{}",designerId,s5);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -454,6 +458,21 @@ public class OpenApiUtils {
                 .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
                 .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
                 .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        return content;
+    }
+
+    /**
+     * 查询产品附带的供应商信息
+     * @param designerId
+     * @param userToken
+     * @return
+     * @throws IOException
+     */
+    public static String designerInfo(Long designerId,String userToken) throws IOException {
+        String content = Request.Get(URI + "/open-api/v1/customized/user/product/designer-simple-info?designerId="+designerId)
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .addHeader(HEADER_OPEN_USER_TOKEN_NAME, userToken)
                 .execute().returnContent().asString(Charsets.UTF_8);
         return content;
     }
