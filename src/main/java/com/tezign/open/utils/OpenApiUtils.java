@@ -29,13 +29,13 @@ public class OpenApiUtils {
     /**
      * 应用key（由特赞人员提供）
      */
-    private static final String clientKey = "39d97c9a0b2bcd2844577d5375a22729";
+    private static final String clientKey = "39d97c9a0b2bcd2844577d5375a22720";
 
 
     /**
      * 私钥 （由特赞人员提供）
      */
-    private static final String clientSecret = "71d1b5fdac7963d76567d5f145e17a8a";
+    private static final String clientSecret = "71d1b5fdac7963d76567d5f145e17a80";
 
 
     private static final String URI = "https://open-api.tezign.com";
