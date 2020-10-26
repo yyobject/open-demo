@@ -29,13 +29,13 @@ public class OpenApiUtils {
     /**
      * 应用key（由特赞人员提供）
      */
-    private static final String clientKey = "adf5d1df73ea4bd39cb1e917b41cc544";
+    private static final String clientKey = "39d97c9a0b2bcd2844577d5375a22729";
 
 
     /**
      * 私钥 （由特赞人员提供）
      */
-    private static final String clientSecret = "b8a7e10b630f4b90838ad468b980557e";
+    private static final String clientSecret = "71d1b5fdac7963d76567d5f145e17a8a";
 
 
     private static final String URI = "https://open-api.tezign.com";
@@ -61,9 +61,8 @@ public class OpenApiUtils {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-
-        String userName = "994815303@qq.com";
-        String pwd = "qq111111";
+        String userName = "aaa1@qq.com";
+        String pwd = null;
 
         /**
          * 获取平台调用令牌  -这个令牌有效期只有1小时，请保持频率获取更换
@@ -72,29 +71,40 @@ public class OpenApiUtils {
         HEADER_OPEN_API_TOKEN_VALUE = openApiToken;
         log.info("成功获取「X-Open-Api-Token」: {}",openApiToken);
 
-        /**
-         * 重置供应商密码
-         */
-        String s = resetPwd(userName, "123456");
-        log.info("重置供应商密码返回:{}",s);
+//        /**
+//         * 重置供应商密码
+//         * @deprecated
+//         */
+//        String s = resetPwd(userName, "123456");
+//        log.info("重置供应商密码返回:{}",s);
+        //移除用户白名单
+        whitelistremove(userName);
+        //新增用户白名单
+        whitelistAdd(userName, "18317853390", "张三");
+        //修改信息
+//        whitelistModify(userName,"18300000000","李四");
+
 
         /**
          * 登录，获取用户特定token
+         * 当前Unidos系统不做密码校验
          */
-        String userToken = askOpenUserToken(userName, "123456");
+        String userToken = askOpenUserToken(userName,null);
         log.info("成功获取「X-Open-User-Token」:{}",userToken);
 
-        /**
-         * 登陆状态下请求用户信息
-         */
-        String userInfo = askUserInfoByUserToken(userToken);
-        log.info("用户信息:{}",userInfo);
+//        /**
+//         * 登陆状态下请求用户信息
+//         * @deprecated
+//         */
+//        String userInfo = askUserInfoByUserToken(userToken);
+//        log.info("用户信息:{}",userInfo);
 
-        /**
-         * 用户修改密码
-         */
-        boolean b = changePwd(userToken,userName, "123456", pwd);
-        log.info("修改用户密码:{}",b);
+//        /**
+//         * 用户修改密
+//         * @deprecated
+//         */
+//        boolean b = changePwd(userToken,userName, "123456", pwd);
+//        log.info("修改用户密码:{}",b);
 
         /**
          * 获取跳转地址
@@ -102,11 +112,12 @@ public class OpenApiUtils {
         String tokenUrl = accessTokenUrl("product", userToken);
         log.info("用户跳转地址:{}",tokenUrl);
 
-        /**
-         * rfp消息列表
-         */
-        String s1 = rfpNotice(userToken);
-        log.info("rfp消息列表:{}",s1);
+//        /**
+//         * rfp消息列表
+//         * @deprecated
+//         */
+//        String s1 = rfpNotice(userToken);
+//        log.info("rfp消息列表:{}",s1);
 
         /**
          * 个人收藏的产品列表
@@ -205,6 +216,70 @@ public class OpenApiUtils {
             return result.getString("result");
         } else {
             throw new RuntimeException("获取OpenApiToken失败:" + content);
+        }
+    }
+
+    /**
+     * 创建白名单
+     * @param userName
+     * @param phone
+     * @param nickName
+     * @return
+     * @throws IOException
+     */
+    public static String whitelistAdd(String userName, String phone,String nickName) throws IOException {
+
+        JSONObject data = new JSONObject();
+        data.put("userName", userName);
+        data.put("phone", phone);
+        data.put("nickName", nickName);
+
+        String content = Request.Post(URI + "/open-api/v1/customized/whitelist/add")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        log.debug("whitelistAdd返回结果:{}", content);
+        JSONObject result = JSON.parseObject(content);
+        if (Objects.equals(result.getString("code"), "0")) {
+            return result.toString();
+        } else {
+            throw new RuntimeException("whitelistAdd失败:" + content);
+        }
+    }
+    public static String whitelistremove(String userName) throws IOException {
+
+        JSONObject data = new JSONObject();
+        data.put("userName", userName);
+
+        String content = Request.Post(URI + "/open-api/v1/customized/whitelist/remove")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        log.debug("whitelistRemove返回结果:{}", content);
+        JSONObject result = JSON.parseObject(content);
+        if (Objects.equals(result.getString("code"), "0")) {
+            return result.toString();
+        } else {
+            throw new RuntimeException("whitelistRemove失败:" + content);
+        }
+    }
+    public static String whitelistModify(String userName, String phone,String nickName) throws IOException {
+
+        JSONObject data = new JSONObject();
+        data.put("userName", userName);
+        data.put("phone", phone);
+        data.put("nickName", nickName);
+
+        String content = Request.Post(URI + "/open-api/v1/customized/whitelist/modify")
+                .addHeader(HEADER_OPEN_API_TOKEN_NAME, HEADER_OPEN_API_TOKEN_VALUE)
+                .bodyString(data.toJSONString(), ContentType.APPLICATION_JSON)
+                .execute().returnContent().asString(Charsets.UTF_8);
+        log.debug("whitelistModify返回结果:{}", content);
+        JSONObject result = JSON.parseObject(content);
+        if (Objects.equals(result.getString("code"), "0")) {
+            return result.toString();
+        } else {
+            throw new RuntimeException("whitelistModify失败:" + content);
         }
     }
 
