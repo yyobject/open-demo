@@ -61,7 +61,7 @@ public class OpenApiUtils {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        String userName = "aaa1@qq.com";
+        String userName = "aaa333@qq.com";
         String pwd = null;
 
         /**
@@ -78,9 +78,9 @@ public class OpenApiUtils {
 //        String s = resetPwd(userName, "123456");
 //        log.info("重置供应商密码返回:{}",s);
         //移除用户白名单
-        whitelistremove(userName);
+//        whitelistremove(userName);
         //新增用户白名单
-        whitelistAdd(userName, "18317853390", "张三");
+        whitelistAdd(userName, "", "张三");
         //修改信息
 //        whitelistModify(userName,"18300000000","李四");
 
@@ -109,7 +109,7 @@ public class OpenApiUtils {
         /**
          * 获取跳转地址
          */
-        String tokenUrl = accessTokenUrl("product", userToken);
+        String tokenUrl = accessTokenUrl("aaa", userToken);
         log.info("用户跳转地址:{}",tokenUrl);
 
 //        /**
@@ -125,44 +125,44 @@ public class OpenApiUtils {
         String s2 = starSpuList(userToken);
         log.info("个人收藏的产品列表:{}",s2);
 
-        try {
-            JSONArray result = JSON.parseObject(s2).getJSONObject("result").getJSONArray("list");
-            Long spuId = result.getJSONObject(0).getLong("spuId");
-            if(Objects.nonNull(spuId)){
-                /**
-                 * 根据spuId查询详情
-                 */
-                String s3 = spuDetail(spuId, userToken);
-                log.info("根据spuId查询详情，spuId={}:{}",spuId,s3);
-
-                /**
-                 * 取消收藏
-                 */
-                String s4 = unStar(spuId, userToken);
-                log.info("取消收藏，spuId={}:{}",spuId,s4);
-
-                /**
-                 * 收藏
-                 */
-                String star = star(spuId, userToken);
-                log.info("收藏，spuId={}:{}",spuId,star);
-
-                Long designerId = result.getJSONObject(0).getLong("belongId");
-                String s5 = designerInfo(designerId, userToken);
-                log.info("产品供应商信息，designerId={}:{}",designerId,s5);
-
-                String s6 = spuTags(spuId, userToken);
-                log.info("产品标签，spuId={}:{}",spuId,s6);
-
-                String s7 = querySimilarSpu(spuId, 0, 3, userToken);
-                log.info("分页查询相似产品，spuId={}:{}",spuId,s7);
-
-                String s8 = queryRecommendSpu(spuId, userToken);
-                log.info("系统、供应商推荐产品，spuId={}:{}",spuId,s8);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+//        try {
+//            JSONArray result = JSON.parseObject(s2).getJSONObject("result").getJSONArray("list");
+//            Long spuId = result.getJSONObject(0).getLong("spuId");
+//            if(Objects.nonNull(spuId)){
+//                /**
+//                 * 根据spuId查询详情
+//                 */
+//                String s3 = spuDetail(spuId, userToken);
+//                log.info("根据spuId查询详情，spuId={}:{}",spuId,s3);
+//
+//                /**
+//                 * 取消收藏
+//                 */
+//                String s4 = unStar(spuId, userToken);
+//                log.info("取消收藏，spuId={}:{}",spuId,s4);
+//
+//                /**
+//                 * 收藏
+//                 */
+//                String star = star(spuId, userToken);
+//                log.info("收藏，spuId={}:{}",spuId,star);
+//
+//                Long designerId = result.getJSONObject(0).getLong("belongId");
+//                String s5 = designerInfo(designerId, userToken);
+//                log.info("产品供应商信息，designerId={}:{}",designerId,s5);
+//
+//                String s6 = spuTags(spuId, userToken);
+//                log.info("产品标签，spuId={}:{}",spuId,s6);
+//
+//                String s7 = querySimilarSpu(spuId, 0, 3, userToken);
+//                log.info("分页查询相似产品，spuId={}:{}",spuId,s7);
+//
+//                String s8 = queryRecommendSpu(spuId, userToken);
+//                log.info("系统、供应商推荐产品，spuId={}:{}",spuId,s8);
+//            }
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
 
         /**
          * 分页查询收藏的案例列表
