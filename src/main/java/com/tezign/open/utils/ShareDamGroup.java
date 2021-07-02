@@ -39,11 +39,11 @@ public class ShareDamGroup {
         /**
          * 登录后的用户id，从登录后任一接口的x-user-id请求头
          */
-        String userId = "1";
+        String userId = "";
         /**
          * 登录后的token，x-token请求头值
          */
-        String token = "7b049034ffa9ba699cc8bffdcb223b9d";
+        String token = "";
         /**
          * 执行sql获取数据列表后存入本地
          * 相关sql，其中390是顶级素材组id，可以打开素材组在地址栏查看：select concat(id,",",group_name) from vms_dam_group where status=0 and root_id=390
